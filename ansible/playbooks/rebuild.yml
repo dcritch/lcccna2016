@@ -1,0 +1,25 @@
+---
+- hosts: git-server
+  remote_user: davidc
+  tasks:
+  - name: check for updated source
+    git: repo=http://{{ git_server }}/git/gaslog.git dest=/home/davidc/gaslog update=yes
+
+- hosts: ose-master
+  remote_user: davidc
+  tasks:
+  - name: check for updated source
+    git: repo=http://{{ git_server }}/git/gaslog.git dest=/home/davidc/gaslog update=yes
+    register: gitcheck
+  - name: check if code was updated
+    command: git diff --name-only {{ gitcheck.before }} HEAD chdir=/home/davidc/gaslog
+    register: codechk
+  - name: get pods to nuke
+    shell: kubectl get pods -n gaslog | awk '/gasapp/ {print $1}'
+    register: pods
+  - debug: msg="rebuilding pods due to source update"
+    when: '"src" in codechk.stdout'
+  - name: delete pods
+    command: kubectl delete pod {{ item }} -n gaslog
+    when: '"src" in codechk.stdout'
+    with_items: "{{pods.stdout_lines}}"

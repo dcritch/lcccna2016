@@ -1,0 +1,36 @@
+---
+kind: ReplicationController
+apiVersion: v1
+metadata:
+  name: gasapp-rc
+  labels:
+    name: gasapp-rc
+spec:
+  replicas: 2
+  template:
+    metadata:
+      labels:
+        name: gasapp-pod
+    spec:
+      containers:
+      - name: gasapp-pod
+        image: dckr.cloud.lab.tst:5000/davidc/gasapp
+        ports:
+        - containerPort: 80
+          protocol: TCP
+        env:
+        - name: MYSQL_HOST
+          value: gasdb-svc
+        - name: MYSQL_USER
+          value: "gaslog"
+        - name: MYSQL_PASSWORD
+          value: "data4Life!"
+        - name: MYSQL_DATABASE
+          value: "gaslog"
+        resources: {}
+        terminationMessagePath: /dev/termination-log
+        imagePullPolicy: Always
+        capabilities: {}
+    restartPolicy: Always
+    dnsPolicy: ClusterFirst
+    serviceAccount: ''

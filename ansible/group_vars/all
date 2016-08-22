@@ -1,0 +1,9 @@
+---
+## common variables
+
+pkgs:
+- git
+- screen
+
+git_server: "nfs.lab.tst"
+docker_registry: "dckr.cloud.lab.tst"

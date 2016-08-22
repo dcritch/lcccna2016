@@ -1,0 +1,6 @@
+---
+- hosts: ose-master
+  remote_user: davidc
+  tasks:
+  - name: scale replication controller
+    command: kubectl scale rc/gasapp-rc --replicas={{ replicas }}

@@ -1,0 +1,13 @@
+---
+- hosts: ose-master
+  remote_user: root
+  tasks:
+  - name: delete the project
+    command: kubectl delete project gaslog
+    ignore_errors: yes
+  - name: delete the pv
+    command: kubectl delete -f /home/davidc/gaslog/k8s/cfg/00_gasdb-pv.yaml
+    ignore_errors: yes
+  - name: cleanup git
+    file: path=/home/davidc/gaslog state=absent
+    ignore_errors: yes

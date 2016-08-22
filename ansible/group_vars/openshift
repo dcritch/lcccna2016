@@ -1,0 +1,5 @@
+---
+docker_dev: "/dev/vdb"
+registry_nfs_host: "nfs.lab.tst"
+registry_nfs_dir: "/xs/atomic/registry"
+registry_nfs_sz: "50Gi"

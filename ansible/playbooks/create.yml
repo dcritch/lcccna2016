@@ -1,0 +1,45 @@
+---
+- hosts: ose-master
+  remote_user: davidc
+  tasks:
+  - name: clone repo
+    git: repo=http://{{ git_server }}/git/gaslog.git dest=/home/davidc/gaslog update=yes
+  - name: build docker image
+    command: docker build --no-cache=true -t davidc/gasapp gaslog/k8s/build/
+  - name: tag docker image
+    command: docker tag -f davidc/gasapp {{ docker_registry }}:5000/davidc/gasapp
+  - name: push docker image
+    command: docker push {{ docker_registry }}:5000/davidc/gasapp
+
+- hosts: ose-master
+  remote_user: root
+  tasks:
+  - name: create project
+    command: oadm new-project gaslog --display-name="gas log v1.0" --description="app to record gas usage" --admin=davidc
+  - name: set limits on project
+    command: kubectl create -n gaslog -f /home/davidc/gaslog/k8s/cfg/00_gaslog-limits.yaml
+  - name: create pv for project
+    command: kubectl create -n gaslog -f /home/davidc/gaslog/k8s/cfg/00_gasdb-pv.yaml
+
+- hosts: ose-master
+  remote_user: davidc
+  tasks:
+  - name: login to openshift
+    command: oc login -u davidc -p P@ssw0rd
+  - name: create pvc
+    command: kubectl create -n gaslog -f /home/davidc/gaslog/k8s/cfg/01_gasdb-pvc.yaml
+  - name: create db pod
+    command: kubectl create -n gaslog -f /home/davidc/gaslog/k8s/cfg/02_gasdb-pod.yaml
+  - name: create db svc
+    command: kubectl create -n gaslog -f /home/davidc/gaslog/k8s/cfg/03_gasdb-svc.yaml
+  - name: wait for db
+    pause: seconds=20
+  - name: create app rc
+    command: kubectl create -n gaslog -f /home/davidc/gaslog/k8s/cfg/04_gasapp-rc.yaml --validate=false
+  - name: create app svc
+    command: kubectl create -n gaslog -f /home/davidc/gaslog/k8s/cfg/05_gasapp-svc.yaml
+  - name: create app route
+    command: kubectl create -n gaslog -f /home/davidc/gaslog/k8s/cfg/06_gasapp-rt.yaml --validate=false
+  - name: create app hpa
+    command: kubectl create -n gaslog -f /home/davidc/gaslog/k8s/cfg/07_gasapp-hpa.yaml --validate=false
+

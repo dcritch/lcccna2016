@@ -1,0 +1,13 @@
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: gasdb-pv
+spec:
+  capacity:
+    storage: 15Gi
+  accessModes:
+  - ReadWriteMany
+  nfs:
+    path: /xs/atomic/gaslog/
+    server: nfs.lab.tst
